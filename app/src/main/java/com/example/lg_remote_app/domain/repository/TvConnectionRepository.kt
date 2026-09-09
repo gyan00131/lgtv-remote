@@ -1,6 +1,7 @@
 package com.example.lg_remote_app.domain.repository
 
 import com.example.lg_remote_app.data.model.LgTvDevice
+import com.example.lg_remote_app.data.model.TvInputSource
 import com.example.lg_remote_app.domain.model.TvConnectionState
 import kotlinx.coroutines.flow.StateFlow
 
@@ -8,6 +9,7 @@ interface TvConnectionRepository {
     val connectionState: StateFlow<TvConnectionState>
     val discoveredDevices: StateFlow<List<LgTvDevice>>
     val pairedDevices: StateFlow<List<LgTvDevice>>
+    val externalInputs: StateFlow<List<TvInputSource>>
 
     fun startDiscovery()
     fun stopDiscovery()
@@ -26,4 +28,13 @@ interface TvConnectionRepository {
     fun sendHome()
     fun sendBack()
     fun sendPointerButton(buttonName: String)
+
+    fun play()
+    fun pause()
+    fun stop()
+    fun rewind()
+    fun fastForward()
+    fun sendNumber(digit: Int)
+    fun fetchExternalInputs()
+    fun switchInput(inputId: String)
 }

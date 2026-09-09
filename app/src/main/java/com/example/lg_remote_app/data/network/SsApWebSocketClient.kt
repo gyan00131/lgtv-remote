@@ -2,6 +2,7 @@ package com.example.lg_remote_app.data.network
 
 import android.util.Log
 import com.example.lg_remote_app.data.model.LgTvDevice
+import com.example.lg_remote_app.data.model.TvInputSource
 import com.example.lg_remote_app.domain.model.TvConnectionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +41,8 @@ class SsApWebSocketClient {
     private val isConnectingOrConnected = AtomicBoolean(false)
     private val reqId = AtomicInteger(1)
 
+    private var isMuted = false
+
     private val pendingPointerCommands = ArrayDeque<String>()
 
     private val _connectionState = MutableStateFlow<TvConnectionState>(TvConnectionState.Disconnected)
@@ -48,10 +51,14 @@ class SsApWebSocketClient {
     private val _clientKeyReceived = MutableSharedFlow<Pair<LgTvDevice, String>>()
     val clientKeyReceived: SharedFlow<Pair<LgTvDevice, String>> = _clientKeyReceived.asSharedFlow()
 
+    private val _externalInputs = MutableStateFlow<List<TvInputSource>>(emptyList())
+    val externalInputs: StateFlow<List<TvInputSource>> = _externalInputs.asStateFlow()
+
     private var currentDevice: LgTvDevice? = null
     private var useSsl = false
 
     private val POINTER_REQ_PREFIX = "ptr_req_"
+    private val INPUT_REQ_PREFIX = "input_req_"
     private val REGISTER_ID = "register_0"
 
     private val fullPermissions = listOf(
@@ -141,12 +148,51 @@ class SsApWebSocketClient {
         webSocket?.send(reqStr)
     }
 
-    fun volumeUp() = sendCommand("ssap://audio/volumeUp")
-    fun volumeDown() = sendCommand("ssap://audio/volumeDown")
-    fun toggleMute() = sendCommand("ssap://audio/setMute", JSONObject().apply { put("mute", true) })
+    fun volumeUp() {
+        isMuted = false
+        sendCommand("ssap://audio/volumeUp")
+    }
+
+    fun volumeDown() {
+        isMuted = false
+        sendCommand("ssap://audio/volumeDown")
+    }
+
+    fun toggleMute() {
+        isMuted = !isMuted
+        Log.d(TAG, "Toggling mute state to: $isMuted")
+        sendCommand("ssap://audio/setMute", JSONObject().apply { put("mute", isMuted) })
+    }
+
     fun channelUp() = sendCommand("ssap://tv/channelUp")
     fun channelDown() = sendCommand("ssap://tv/channelDown")
     fun powerOff() = sendCommand("ssap://system/turnOff")
+
+    fun play() = sendCommand("ssap://media.controls/play")
+    fun pause() = sendCommand("ssap://media.controls/pause")
+    fun stop() = sendCommand("ssap://media.controls/stop")
+    fun rewind() = sendCommand("ssap://media.controls/rewind")
+    fun fastForward() = sendCommand("ssap://media.controls/fastForward")
+
+    fun sendNumber(digit: Int) {
+        sendPointerButton("$digit")
+    }
+
+    fun fetchExternalInputs() {
+        val reqIdStr = "${INPUT_REQ_PREFIX}${reqId.getAndIncrement()}"
+        val req = JSONObject().apply {
+            put("id", reqIdStr)
+            put("type", "request")
+            put("uri", "ssap://tv/getExternalInputList")
+        }
+        Log.d(TAG, "TX fetchExternalInputs id=$reqIdStr")
+        webSocket?.send(req.toString())
+    }
+
+    fun switchInput(inputId: String) {
+        val payload = JSONObject().apply { put("inputId", inputId) }
+        sendCommand("ssap://tv/switchInput", payload)
+    }
 
     fun sendPointerButton(buttonName: String) {
         val command = "type:button\nname:$buttonName\n\n"
@@ -168,8 +214,7 @@ class SsApWebSocketClient {
                 "HOME" -> sendCommand("ssap://system.launcher/open")
                 "BACK" -> sendCommand("ssap://tv/openChannelGuide")
                 "ENTER" -> sendCommand("ssap://com.webos.service.ime/sendEnterKey")
-                "UP" -> sendCommand("ssap://com.webos.service.ime/sendEnterKey")
-                else -> sendCommand("ssap://com.webos.service.ime/sendEnterKey")
+                else -> sendCommand("ssap://tv/passThroughKey", JSONObject().apply { put("key", buttonName) })
             }
         }
     }
@@ -203,6 +248,7 @@ class SsApWebSocketClient {
         pointerSocket = null
         pointerSocketReady = false
         pendingPointerCommands.clear()
+        isMuted = false
     }
 
     private fun sendRegisterPayload(clientKey: String?) {
@@ -253,6 +299,7 @@ class SsApWebSocketClient {
                     }
 
                     requestPointerSocket()
+                    fetchExternalInputs()
                 }
 
                 "response" -> {
@@ -282,6 +329,25 @@ class SsApWebSocketClient {
                             }
                             Log.d(TAG, "Got pointer socket path: $socketPath")
                             connectPointerSocket(socketPath)
+                        }
+                        return
+                    }
+
+                    if (id.startsWith(INPUT_REQ_PREFIX)) {
+                        val devicesArray = payload?.optJSONArray("devices")
+                        if (devicesArray != null) {
+                            val inputList = mutableListOf<TvInputSource>()
+                            for (i in 0 until devicesArray.length()) {
+                                val item = devicesArray.getJSONObject(i)
+                                val inputId = item.optString("id")
+                                val label = item.optString("label", inputId)
+                                val icon = item.optString("icon")
+                                val connected = item.optBoolean("connected", true)
+                                if (inputId.isNotEmpty()) {
+                                    inputList.add(TvInputSource(id = inputId, label = label, icon = icon, isConnected = connected))
+                                }
+                            }
+                            _externalInputs.value = inputList
                         }
                         return
                     }

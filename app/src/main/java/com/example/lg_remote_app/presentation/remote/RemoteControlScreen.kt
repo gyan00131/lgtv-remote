@@ -25,6 +25,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,13 +39,22 @@ import androidx.compose.ui.unit.sp
 import com.example.lg_remote_app.data.model.LgTvDevice
 import com.example.lg_remote_app.domain.model.TvConnectionState
 import com.example.lg_remote_app.presentation.components.DPadControl
+import com.example.lg_remote_app.presentation.components.MediaAndInputControl
+import com.example.lg_remote_app.presentation.components.NumpadControl
 import com.example.lg_remote_app.presentation.components.VolumeChannelControl
 import com.example.lg_remote_app.presentation.connect.ConnectTvViewModel
 import com.example.lg_remote_app.ui.components.performHapticFeedback
 import com.example.lg_remote_app.ui.theme.DarkBackground
 import com.example.lg_remote_app.ui.theme.DarkCardSurface
+import com.example.lg_remote_app.ui.theme.PinkAccent
 import com.example.lg_remote_app.ui.theme.TextPrimary
 import com.example.lg_remote_app.ui.theme.TextSecondary
+
+enum class RemoteTab {
+    CONTROLS,
+    NUMPAD,
+    MEDIA
+}
 
 @Composable
 fun RemoteControlScreen(
@@ -52,6 +64,9 @@ fun RemoteControlScreen(
 ) {
     val context = LocalContext.current
     val connectionState by viewModel.connectionState.collectAsState()
+    val externalInputs by viewModel.externalInputs.collectAsState()
+
+    var selectedTab by remember { mutableStateOf(RemoteTab.CONTROLS) }
 
     val connectedDevice = when (connectionState) {
         is TvConnectionState.Connected -> (connectionState as TvConnectionState.Connected).device
@@ -121,62 +136,145 @@ fun RemoteControlScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // D-Pad Control
-        DPadControl(
-            onDirectionClick = { button ->
-                viewModel.sendPointerButton(button)
-            }
-        )
-
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Home and Back Row
+        // Tab Selector Row
         Row(
-            modifier = Modifier.fillMaxWidth(0.7f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(DarkCardSurface)
+                .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(DarkCardSurface)
-                    .clickable {
-                        performHapticFeedback(context)
-                        viewModel.sendBack()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+            TabButton("CONTROLS", selectedTab == RemoteTab.CONTROLS) {
+                performHapticFeedback(context)
+                selectedTab = RemoteTab.CONTROLS
             }
-
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(DarkCardSurface)
-                    .clickable {
-                        performHapticFeedback(context)
-                        viewModel.sendHome()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
+            TabButton("NUMPAD", selectedTab == RemoteTab.NUMPAD) {
+                performHapticFeedback(context)
+                selectedTab = RemoteTab.NUMPAD
+            }
+            TabButton("MEDIA", selectedTab == RemoteTab.MEDIA) {
+                performHapticFeedback(context)
+                selectedTab = RemoteTab.MEDIA
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Volume & Channel Controls
-        VolumeChannelControl(
-            onVolumeUp = { viewModel.volumeUp() },
-            onVolumeDown = { viewModel.volumeDown() },
-            onMuteToggle = { viewModel.toggleMute() },
-            onChannelUp = { viewModel.channelUp() },
-            onChannelDown = { viewModel.channelDown() }
-        )
+        // Main Content Area based on Selected Tab
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
+            when (selectedTab) {
+                RemoteTab.CONTROLS -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        DPadControl(
+                            onDirectionClick = { button ->
+                                viewModel.sendPointerButton(button)
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(0.7f),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(CircleShape)
+                                    .background(DarkCardSurface)
+                                    .clickable {
+                                        performHapticFeedback(context)
+                                        viewModel.sendBack()
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(CircleShape)
+                                    .background(DarkCardSurface)
+                                    .clickable {
+                                        performHapticFeedback(context)
+                                        viewModel.sendHome()
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        VolumeChannelControl(
+                            onVolumeUp = { viewModel.volumeUp() },
+                            onVolumeDown = { viewModel.volumeDown() },
+                            onMuteToggle = { viewModel.toggleMute() },
+                            onChannelUp = { viewModel.channelUp() },
+                            onChannelDown = { viewModel.channelDown() }
+                        )
+                    }
+                }
+
+                RemoteTab.NUMPAD -> {
+                    NumpadControl(
+                        onNumberClick = { digit ->
+                            viewModel.sendNumber(digit)
+                        }
+                    )
+                }
+
+                RemoteTab.MEDIA -> {
+                    MediaAndInputControl(
+                        inputs = externalInputs,
+                        onPlay = { viewModel.play() },
+                        onPause = { viewModel.pause() },
+                        onStop = { viewModel.stop() },
+                        onRewind = { viewModel.rewind() },
+                        onFastForward = { viewModel.fastForward() },
+                        onInputSelect = { inputId -> viewModel.switchInput(inputId) }
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun TabButton(
+    title: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(if (isSelected) PinkAccent else Color.Transparent)
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = title,
+            color = if (isSelected) Color.White else TextSecondary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }

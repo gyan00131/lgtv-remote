@@ -3,6 +3,7 @@ package com.example.lg_remote_app.presentation.connect
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.example.lg_remote_app.data.model.LgTvDevice
+import com.example.lg_remote_app.data.model.TvInputSource
 import com.example.lg_remote_app.data.repository.TvConnectionRepositoryImpl
 import com.example.lg_remote_app.domain.model.TvConnectionState
 import com.example.lg_remote_app.domain.repository.TvConnectionRepository
@@ -21,6 +22,7 @@ class ConnectTvViewModel(
     val connectionState: StateFlow<TvConnectionState> = repository.connectionState
     val discoveredDevices: StateFlow<List<LgTvDevice>> = repository.discoveredDevices
     val pairedDevices: StateFlow<List<LgTvDevice>> = repository.pairedDevices
+    val externalInputs: StateFlow<List<TvInputSource>> = repository.externalInputs
 
     init {
         startDiscovery()
@@ -55,4 +57,13 @@ class ConnectTvViewModel(
     fun sendHome() = repository.sendHome()
     fun sendBack() = repository.sendBack()
     fun sendPointerButton(buttonName: String) = repository.sendPointerButton(buttonName)
+
+    fun play() = repository.play()
+    fun pause() = repository.pause()
+    fun stop() = repository.stop()
+    fun rewind() = repository.rewind()
+    fun fastForward() = repository.fastForward()
+    fun sendNumber(digit: Int) = repository.sendNumber(digit)
+    fun fetchExternalInputs() = repository.fetchExternalInputs()
+    fun switchInput(inputId: String) = repository.switchInput(inputId)
 }

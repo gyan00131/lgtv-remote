@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.lg_remote_app.data.local.PairedTvStorage
 import com.example.lg_remote_app.data.model.LgTvDevice
+import com.example.lg_remote_app.data.model.TvInputSource
 import com.example.lg_remote_app.data.network.SsApWebSocketClient
 import com.example.lg_remote_app.data.network.SsdpDiscoveryService
 import com.example.lg_remote_app.domain.discovery.TvDiscoveryService
@@ -35,6 +36,8 @@ class TvConnectionRepositoryImpl(
 
     private val _pairedDevices = MutableStateFlow<List<LgTvDevice>>(emptyList())
     override val pairedDevices: StateFlow<List<LgTvDevice>> = _pairedDevices.asStateFlow()
+
+    override val externalInputs: StateFlow<List<TvInputSource>> = webSocketClient.externalInputs
 
     init {
         loadPairedDevices()
@@ -148,6 +151,15 @@ class TvConnectionRepositoryImpl(
     override fun sendHome() = webSocketClient.sendHome()
     override fun sendBack() = webSocketClient.sendBack()
     override fun sendPointerButton(buttonName: String) = webSocketClient.sendPointerButton(buttonName)
+
+    override fun play() = webSocketClient.play()
+    override fun pause() = webSocketClient.pause()
+    override fun stop() = webSocketClient.stop()
+    override fun rewind() = webSocketClient.rewind()
+    override fun fastForward() = webSocketClient.fastForward()
+    override fun sendNumber(digit: Int) = webSocketClient.sendNumber(digit)
+    override fun fetchExternalInputs() = webSocketClient.fetchExternalInputs()
+    override fun switchInput(inputId: String) = webSocketClient.switchInput(inputId)
 
     private fun loadPairedDevices() {
         _pairedDevices.value = pairedStorage.getPairedTvs()
