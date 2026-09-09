@@ -1,6 +1,7 @@
 package com.example.lg_remote_app.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -36,7 +37,8 @@ fun DPadControl(
         modifier = modifier
             .size(240.dp)
             .clip(CircleShape)
-            .background(DarkCardSurface),
+            .background(DarkCardSurface)
+            .border(1.5.dp, Color(0xFF212F47), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         // Up
@@ -119,12 +121,13 @@ fun DPadControl(
             )
         }
 
-        // Center OK
+        // Center OK Button matching Image 2
         Box(
             modifier = Modifier
                 .size(80.dp)
                 .clip(CircleShape)
-                .background(Color(0xFF2A2A38))
+                .background(Color(0xFF1E293B))
+                .border(1.5.dp, Color(0xFF2D3D58), CircleShape)
                 .clickable {
                     performHapticFeedback(context)
                     onDirectionClick("ENTER")
@@ -134,7 +137,7 @@ fun DPadControl(
             Text(
                 text = "OK",
                 color = Color.White,
-                fontSize = 18.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold
             )
         }

@@ -25,4 +25,36 @@ class TouchpadGestureTest {
 
         assertEquals("type:scroll\ndx:0\ndy:-5\n\n", formatScroll(0, -5))
     }
+
+    @Test
+    fun `test scroll throttle logic`() {
+        var lastScrollTimestamp = 0L
+        val throttleMs = 1400L
+        var scrollCount = 0
+
+        fun triggerScroll(currentTime: Long): Boolean {
+            if (currentTime - lastScrollTimestamp >= throttleMs) {
+                lastScrollTimestamp = currentTime
+                scrollCount++
+                return true
+            }
+            return false
+        }
+
+        // First scroll at t = 1400ms (diff from 0L is 1400ms -> succeeds)
+        assertEquals(true, triggerScroll(1400L))
+        assertEquals(1, scrollCount)
+
+        // Second scroll attempt at t = 2000ms (600ms elapsed) -> should be throttled
+        assertEquals(false, triggerScroll(2000L))
+        assertEquals(1, scrollCount)
+
+        // Third scroll attempt at t = 2799ms (1399ms elapsed) -> should be throttled
+        assertEquals(false, triggerScroll(2799L))
+        assertEquals(1, scrollCount)
+
+        // Fourth scroll attempt at t = 2800ms (1400ms elapsed since 1400ms) -> should succeed
+        assertEquals(true, triggerScroll(2800L))
+        assertEquals(2, scrollCount)
+    }
 }

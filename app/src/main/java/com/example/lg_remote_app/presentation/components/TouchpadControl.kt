@@ -46,11 +46,11 @@ import com.example.lg_remote_app.ui.theme.TextSecondary
 fun TouchpadControl(
     onMovePointer: (dx: Int, dy: Int) -> Unit,
     onClickPointer: () -> Unit,
-    onScrollPointer: (dx: Int, dy: Int) -> Unit,
     onStartAirMouse: () -> Unit,
     onStopAirMouse: () -> Unit,
-    onBackClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onScrollPointer: (dx: Int, dy: Int) -> Unit = { _, _ -> },
+    onBackClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     var isAirMouseActive by remember { mutableStateOf(false) }
@@ -112,7 +112,7 @@ fun TouchpadControl(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF2A2A38))
+                    .background(Color(0xFF1E283C))
                     .clickable {
                         performHapticFeedback(context)
                         onBackClick()
@@ -133,7 +133,7 @@ fun TouchpadControl(
                     .weight(1f)
                     .height(60.dp)
                     .clip(RoundedCornerShape(30.dp))
-                    .background(if (isAirMouseActive) PinkAccent else Color(0xFF2A2A38))
+                    .background(if (isAirMouseActive) PinkAccent else Color(0xFF1E283C))
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onPress = {

@@ -7,19 +7,27 @@ import android.os.Vibrator
 import android.os.VibratorManager
 
 fun performHapticFeedback(context: Context) {
+    performStrongHapticFeedback(context, durationMs = 100L)
+}
+
+fun performStrongHapticFeedback(context: Context, durationMs: Long = 120L) {
     try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-            val vibrator = vibratorManager?.defaultVibrator
-            vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+            vibratorManager?.defaultVibrator
         } else {
             @Suppress("DEPRECATION")
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator?.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
+            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        }
+
+        if (vibrator != null && vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                vibrator.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(durationMs, 255))
             } else {
                 @Suppress("DEPRECATION")
-                vibrator?.vibrate(30)
+                vibrator.vibrate(durationMs)
             }
         }
     } catch (_: Exception) {}

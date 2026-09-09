@@ -1,6 +1,7 @@
 package com.example.lg_remote_app.presentation.remote
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +49,7 @@ import com.example.lg_remote_app.ui.components.performHapticFeedback
 import com.example.lg_remote_app.ui.theme.DarkBackground
 import com.example.lg_remote_app.ui.theme.DarkCardSurface
 import com.example.lg_remote_app.ui.theme.PinkAccent
+import com.example.lg_remote_app.ui.theme.PowerRed
 import com.example.lg_remote_app.ui.theme.TextPrimary
 import com.example.lg_remote_app.ui.theme.TextSecondary
 
@@ -70,9 +72,10 @@ fun RemoteControlScreen(
 
     var selectedTab by remember { mutableStateOf(RemoteTab.CONTROLS) }
 
+    val isConnected = connectionState is TvConnectionState.Connected
     val connectedDevice = when (connectionState) {
         is TvConnectionState.Connected -> (connectionState as TvConnectionState.Connected).device
-        else -> LgTvDevice(id = "", name = "LG webOS TV", ipAddress = "")
+        else -> LgTvDevice(id = "", name = "LG webOS TV", ipAddress = "192.168.1.33")
     }
 
     Column(
@@ -83,46 +86,19 @@ fun RemoteControlScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Top Header
+        // Top Header matching Image 2
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(DarkCardSurface)
-                    .clickable {
-                        performHapticFeedback(context)
-                        onSwitchTvClick()
-                    }
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(Icons.Default.Tv, contentDescription = "TV", tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
-                    Text(
-                        text = connectedDevice.name,
-                        color = TextPrimary,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = connectedDevice.ipAddress.ifEmpty { "Connected" },
-                        color = TextSecondary,
-                        fontSize = 11.sp
-                    )
-                }
-            }
-
-            // Power Off Button
+            // Power Off Button (Left Circular)
             Box(
                 modifier = Modifier
-                    .size(46.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE53935))
+                    .background(Color(0xFF2C1418))
+                    .border(1.5.dp, PowerRed.copy(alpha = 0.5f), CircleShape)
                     .clickable {
                         performHapticFeedback(context)
                         viewModel.powerOff()
@@ -132,8 +108,73 @@ fun RemoteControlScreen(
                 Icon(
                     imageVector = Icons.Default.PowerSettingsNew,
                     contentDescription = "Power Off",
-                    tint = Color.White,
+                    tint = PowerRed,
                     modifier = Modifier.size(24.dp)
+                )
+            }
+
+            // Title: SMART REMOTE
+            Text(
+                text = "SMART REMOTE",
+                color = TextPrimary,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.5.sp
+            )
+
+            // Tune/Settings Button (Right Circular)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF1E283C))
+                    .border(1.5.dp, Color(0xFF2E3D5C), CircleShape)
+                    .clickable {
+                        performHapticFeedback(context)
+                        onSwitchTvClick()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Tune,
+                    contentDescription = "Settings",
+                    tint = Color.White,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Connection Status Banner Pill matching Image 2
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(24.dp))
+                .background(DarkCardSurface)
+                .border(1.5.dp, Color(0xFF212F47), RoundedCornerShape(24.dp))
+                .clickable {
+                    performHapticFeedback(context)
+                    onSwitchTvClick()
+                }
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(if (isConnected) Color(0xFF00E676) else PowerRed)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (isConnected) "Connected to ${connectedDevice.name} (${connectedDevice.ipAddress})"
+                           else "Could not connect to TV at ${connectedDevice.ipAddress.ifEmpty { "192.168.1.33" }}",
+                    color = TextPrimary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
@@ -146,6 +187,7 @@ fun RemoteControlScreen(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(24.dp))
                 .background(DarkCardSurface)
+                .border(1.dp, Color(0xFF212F47), RoundedCornerShape(24.dp))
                 .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
@@ -200,6 +242,7 @@ fun RemoteControlScreen(
                                     .size(56.dp)
                                     .clip(CircleShape)
                                     .background(DarkCardSurface)
+                                    .border(1.5.dp, Color(0xFF212F47), CircleShape)
                                     .clickable {
                                         performHapticFeedback(context)
                                         viewModel.sendBack()
@@ -214,6 +257,7 @@ fun RemoteControlScreen(
                                     .size(56.dp)
                                     .clip(CircleShape)
                                     .background(DarkCardSurface)
+                                    .border(1.5.dp, Color(0xFF212F47), CircleShape)
                                     .clickable {
                                         performHapticFeedback(context)
                                         viewModel.sendHome()

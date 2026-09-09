@@ -1,5 +1,6 @@
 package com.example.lg_remote_app.presentation.connect
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,9 +16,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -58,6 +61,11 @@ fun ConnectTvScreen(
     onReturnToRemote: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    // Intercept system Back button to return to Remote screen
+    BackHandler(enabled = onReturnToRemote != null) {
+        onReturnToRemote?.invoke()
+    }
+
     val connectionState by viewModel.connectionState.collectAsState()
     val discoveredDevices by viewModel.discoveredDevices.collectAsState()
     val pairedDevices by viewModel.pairedDevices.collectAsState()
@@ -87,19 +95,42 @@ fun ConnectTvScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Connect to Smart TV",
-                    color = TextPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Devices on local Wi-Fi",
-                    color = TextSecondary,
-                    fontSize = 13.sp
-                )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (onReturnToRemote != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF1E283C))
+                            .clickable { onReturnToRemote() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back to Remote",
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
+
+                Column {
+                    Text(
+                        text = "Connect to Smart TV",
+                        color = TextPrimary,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Devices on local Wi-Fi",
+                        color = TextSecondary,
+                        fontSize = 13.sp
+                    )
+                }
             }
 
             if (connectionState is TvConnectionState.Connected && onReturnToRemote != null) {
