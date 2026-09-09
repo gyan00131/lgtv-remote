@@ -161,6 +161,10 @@ class TvConnectionRepositoryImpl(
     override fun fetchExternalInputs() = webSocketClient.fetchExternalInputs()
     override fun switchInput(inputId: String) = webSocketClient.switchInput(inputId)
 
+    override fun movePointer(dx: Int, dy: Int) = webSocketClient.movePointer(dx, dy)
+    override fun clickPointer() = webSocketClient.clickPointer()
+    override fun scrollPointer(dx: Int, dy: Int) = webSocketClient.scrollPointer(dx, dy)
+
     private fun loadPairedDevices() {
         _pairedDevices.value = pairedStorage.getPairedTvs()
     }

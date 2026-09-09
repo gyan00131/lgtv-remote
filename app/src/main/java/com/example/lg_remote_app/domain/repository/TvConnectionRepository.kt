@@ -37,4 +37,8 @@ interface TvConnectionRepository {
     fun sendNumber(digit: Int)
     fun fetchExternalInputs()
     fun switchInput(inputId: String)
+
+    fun movePointer(dx: Int, dy: Int)
+    fun clickPointer()
+    fun scrollPointer(dx: Int, dy: Int)
 }

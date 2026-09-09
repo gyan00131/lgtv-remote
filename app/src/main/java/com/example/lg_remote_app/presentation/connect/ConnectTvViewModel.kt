@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.example.lg_remote_app.data.model.LgTvDevice
 import com.example.lg_remote_app.data.model.TvInputSource
 import com.example.lg_remote_app.data.repository.TvConnectionRepositoryImpl
+import com.example.lg_remote_app.data.sensor.AirMouseSensorManager
 import com.example.lg_remote_app.domain.model.TvConnectionState
 import com.example.lg_remote_app.domain.repository.TvConnectionRepository
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,10 @@ class ConnectTvViewModel(
         application = application,
         repository = TvConnectionRepositoryImpl(application)
     )
+
+    private val airMouseSensorManager = AirMouseSensorManager(application) { dx, dy ->
+        movePointer(dx, dy)
+    }
 
     val connectionState: StateFlow<TvConnectionState> = repository.connectionState
     val discoveredDevices: StateFlow<List<LgTvDevice>> = repository.discoveredDevices
@@ -66,4 +71,16 @@ class ConnectTvViewModel(
     fun sendNumber(digit: Int) = repository.sendNumber(digit)
     fun fetchExternalInputs() = repository.fetchExternalInputs()
     fun switchInput(inputId: String) = repository.switchInput(inputId)
+
+    fun movePointer(dx: Int, dy: Int) = repository.movePointer(dx, dy)
+    fun clickPointer() = repository.clickPointer()
+    fun scrollPointer(dx: Int, dy: Int) = repository.scrollPointer(dx, dy)
+
+    fun startAirMouse() = airMouseSensorManager.start()
+    fun stopAirMouse() = airMouseSensorManager.stop()
+
+    override fun onCleared() {
+        super.onCleared()
+        airMouseSensorManager.stop()
+    }
 }

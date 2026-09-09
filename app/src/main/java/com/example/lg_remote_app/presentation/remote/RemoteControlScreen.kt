@@ -41,6 +41,7 @@ import com.example.lg_remote_app.domain.model.TvConnectionState
 import com.example.lg_remote_app.presentation.components.DPadControl
 import com.example.lg_remote_app.presentation.components.MediaAndInputControl
 import com.example.lg_remote_app.presentation.components.NumpadControl
+import com.example.lg_remote_app.presentation.components.TouchpadControl
 import com.example.lg_remote_app.presentation.components.VolumeChannelControl
 import com.example.lg_remote_app.presentation.connect.ConnectTvViewModel
 import com.example.lg_remote_app.ui.components.performHapticFeedback
@@ -52,6 +53,7 @@ import com.example.lg_remote_app.ui.theme.TextSecondary
 
 enum class RemoteTab {
     CONTROLS,
+    TOUCHPAD,
     NUMPAD,
     MEDIA
 }
@@ -147,9 +149,13 @@ fun RemoteControlScreen(
                 .padding(4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            TabButton("CONTROLS", selectedTab == RemoteTab.CONTROLS) {
+            TabButton("REMOTE", selectedTab == RemoteTab.CONTROLS) {
                 performHapticFeedback(context)
                 selectedTab = RemoteTab.CONTROLS
+            }
+            TabButton("TOUCHPAD", selectedTab == RemoteTab.TOUCHPAD) {
+                performHapticFeedback(context)
+                selectedTab = RemoteTab.TOUCHPAD
             }
             TabButton("NUMPAD", selectedTab == RemoteTab.NUMPAD) {
                 performHapticFeedback(context)
@@ -230,6 +236,16 @@ fun RemoteControlScreen(
                     }
                 }
 
+                RemoteTab.TOUCHPAD -> {
+                    TouchpadControl(
+                        onMovePointer = { dx, dy -> viewModel.movePointer(dx, dy) },
+                        onClickPointer = { viewModel.clickPointer() },
+                        onScrollPointer = { dx, dy -> viewModel.scrollPointer(dx, dy) },
+                        onStartAirMouse = { viewModel.startAirMouse() },
+                        onStopAirMouse = { viewModel.stopAirMouse() }
+                    )
+                }
+
                 RemoteTab.NUMPAD -> {
                     NumpadControl(
                         onNumberClick = { digit ->
@@ -267,13 +283,13 @@ private fun TabButton(
             .clip(RoundedCornerShape(20.dp))
             .background(if (isSelected) PinkAccent else Color.Transparent)
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = title,
             color = if (isSelected) Color.White else TextSecondary,
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold
         )
     }

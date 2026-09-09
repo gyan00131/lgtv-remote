@@ -194,6 +194,36 @@ class SsApWebSocketClient {
         sendCommand("ssap://tv/switchInput", payload)
     }
 
+    fun movePointer(dx: Int, dy: Int) {
+        val command = "type:move\ndx:$dx\ndy:$dy\ndown:0\n\n"
+        val pSocket = pointerSocket
+        if (pSocket != null && pointerSocketReady) {
+            pSocket.send(command)
+        } else {
+            if (_connectionState.value is TvConnectionState.Connected) {
+                requestPointerSocket()
+            }
+        }
+    }
+
+    fun clickPointer() {
+        val command = "type:click\n\n"
+        val pSocket = pointerSocket
+        if (pSocket != null && pointerSocketReady) {
+            pSocket.send(command)
+        } else {
+            sendPointerButton("ENTER")
+        }
+    }
+
+    fun scrollPointer(dx: Int, dy: Int) {
+        val command = "type:scroll\ndx:$dx\ndy:$dy\n\n"
+        val pSocket = pointerSocket
+        if (pSocket != null && pointerSocketReady) {
+            pSocket.send(command)
+        }
+    }
+
     fun sendPointerButton(buttonName: String) {
         val command = "type:button\nname:$buttonName\n\n"
 
