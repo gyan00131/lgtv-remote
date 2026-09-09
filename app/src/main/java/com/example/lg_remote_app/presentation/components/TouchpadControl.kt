@@ -1,6 +1,7 @@
 package com.example.lg_remote_app.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -13,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Adjust
 import androidx.compose.material.icons.filled.Mouse
 import androidx.compose.material3.Icon
@@ -46,6 +49,7 @@ fun TouchpadControl(
     onScrollPointer: (dx: Int, dy: Int) -> Unit,
     onStartAirMouse: () -> Unit,
     onStopAirMouse: () -> Unit,
+    onBackClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -97,46 +101,73 @@ fun TouchpadControl(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Air Mouse Hold Button
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp)
-                .clip(RoundedCornerShape(30.dp))
-                .background(if (isAirMouseActive) PinkAccent else Color(0xFF2A2A38))
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = {
-                            performHapticFeedback(context)
-                            isAirMouseActive = true
-                            onStartAirMouse()
-                            try {
-                                awaitRelease()
-                            } finally {
-                                isAirMouseActive = false
-                                onStopAirMouse()
-                            }
-                        }
-                    )
-                },
-            contentAlignment = Alignment.Center
+        // Action Buttons Row (Back + Air Mouse)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
+            // Back Button
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF2A2A38))
+                    .clickable {
+                        performHapticFeedback(context)
+                        onBackClick()
+                    },
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Adjust,
-                    contentDescription = null,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
                     tint = Color.White,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(24.dp)
                 )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = if (isAirMouseActive) "Air Mouse Active (Move Phone)" else "Hold for Air Mouse",
-                    color = Color.White,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            }
+
+            // Air Mouse Hold Button
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(30.dp))
+                    .background(if (isAirMouseActive) PinkAccent else Color(0xFF2A2A38))
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = {
+                                performHapticFeedback(context)
+                                isAirMouseActive = true
+                                onStartAirMouse()
+                                try {
+                                    awaitRelease()
+                                } finally {
+                                    isAirMouseActive = false
+                                    onStopAirMouse()
+                                }
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Adjust,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (isAirMouseActive) "Air Mouse Active" else "Hold Air Mouse",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

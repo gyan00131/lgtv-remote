@@ -55,6 +55,7 @@ import com.example.lg_remote_app.ui.theme.TextSecondary
 @Composable
 fun ConnectTvScreen(
     viewModel: ConnectTvViewModel,
+    onReturnToRemote: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val connectionState by viewModel.connectionState.collectAsState()
@@ -81,20 +82,43 @@ fun ConnectTvScreen(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Connect to Smart TV",
-            color = TextPrimary,
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Connect to Smart TV",
+                    color = TextPrimary,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Devices on local Wi-Fi",
+                    color = TextSecondary,
+                    fontSize = 13.sp
+                )
+            }
 
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Text(
-            text = "All devices on the same Wi-Fi network will appear here",
-            color = TextSecondary,
-            fontSize = 14.sp
-        )
+            if (connectionState is TvConnectionState.Connected && onReturnToRemote != null) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(PinkAccent)
+                        .clickable { onReturnToRemote() }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Remote ->",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
 

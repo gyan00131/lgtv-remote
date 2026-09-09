@@ -242,7 +242,8 @@ fun RemoteControlScreen(
                         onClickPointer = { viewModel.clickPointer() },
                         onScrollPointer = { dx, dy -> viewModel.scrollPointer(dx, dy) },
                         onStartAirMouse = { viewModel.startAirMouse() },
-                        onStopAirMouse = { viewModel.stopAirMouse() }
+                        onStopAirMouse = { viewModel.stopAirMouse() },
+                        onBackClick = { viewModel.sendBack() }
                     )
                 }
 

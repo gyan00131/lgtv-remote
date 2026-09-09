@@ -19,6 +19,7 @@ import com.example.lg_remote_app.domain.model.TvConnectionState
 import com.example.lg_remote_app.presentation.connect.ConnectTvScreen
 import com.example.lg_remote_app.presentation.connect.ConnectTvViewModel
 import com.example.lg_remote_app.presentation.remote.RemoteControlScreen
+import com.example.lg_remote_app.presentation.splash.SplashScreen
 import com.example.lg_remote_app.ui.theme.LgremoteappTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,7 +28,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LgremoteappTheme {
-                MainAppContent()
+                var showSplash by remember { mutableStateOf(true) }
+
+                if (showSplash) {
+                    SplashScreen(
+                        onSplashFinished = { showSplash = false }
+                    )
+                } else {
+                    MainAppContent()
+                }
             }
         }
     }
@@ -48,6 +57,7 @@ fun MainAppContent(connectViewModel: ConnectTvViewModel = viewModel()) {
         } else {
             ConnectTvScreen(
                 viewModel = connectViewModel,
+                onReturnToRemote = { showConnectScreenOverride = false },
                 modifier = Modifier.padding(innerPadding)
             )
         }
